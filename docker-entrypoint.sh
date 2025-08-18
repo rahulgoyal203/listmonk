@@ -62,14 +62,34 @@ load_secret_files
 # Substitute environment variables in config.toml
 substitute_env_vars() {
   if [ -f /listmonk/config.toml ]; then
+    echo "Debug: Railway environment variables:"
+    echo "PORT=$PORT"
+    echo "PGHOST=$PGHOST"
+    echo "PGPORT=$PGPORT"
+    echo "PGUSER=$PGUSER"
+    echo "PGPASSWORD=$PGPASSWORD"
+    echo "PGDATABASE=$PGDATABASE"
+    
+    echo "Debug: LISTMONK environment variables from Railway:"
+    env | grep LISTMONK_ || echo "No LISTMONK_ variables found"
+    
     # Convert LISTMONK_ environment variables to the config format
-    export LISTMONK_APP_ADDRESS="${LISTMONK_app__address:-0.0.0.0:$PORT}"
-    export LISTMONK_DB_HOST="${LISTMONK_db__host:-localhost}"
-    export LISTMONK_DB_PORT="${LISTMONK_db__port:-5432}"
-    export LISTMONK_DB_USER="${LISTMONK_db__user:-listmonk}"
-    export LISTMONK_DB_PASSWORD="${LISTMONK_db__password:-listmonk}"
-    export LISTMONK_DB_DATABASE="${LISTMONK_db__database:-listmonk}"
+    export LISTMONK_APP_ADDRESS="${LISTMONK_app__address:-0.0.0.0:${PORT:-9000}}"
+    export LISTMONK_DB_HOST="${LISTMONK_db__host:-${PGHOST:-localhost}}"
+    export LISTMONK_DB_PORT="${LISTMONK_db__port:-${PGPORT:-5432}}"
+    export LISTMONK_DB_USER="${LISTMONK_db__user:-${PGUSER:-listmonk}}"
+    export LISTMONK_DB_PASSWORD="${LISTMONK_db__password:-${PGPASSWORD:-listmonk}}"
+    export LISTMONK_DB_DATABASE="${LISTMONK_db__database:-${PGDATABASE:-listmonk}}"
     export LISTMONK_DB_SSL_MODE="${LISTMONK_db__ssl_mode:-disable}"
+    
+    echo "Debug: Mapped variables for substitution:"
+    echo "LISTMONK_APP_ADDRESS=$LISTMONK_APP_ADDRESS"
+    echo "LISTMONK_DB_HOST=$LISTMONK_DB_HOST"
+    echo "LISTMONK_DB_PORT=$LISTMONK_DB_PORT"
+    echo "LISTMONK_DB_USER=$LISTMONK_DB_USER"
+    echo "LISTMONK_DB_PASSWORD=$LISTMONK_DB_PASSWORD"
+    echo "LISTMONK_DB_DATABASE=$LISTMONK_DB_DATABASE"
+    echo "LISTMONK_DB_SSL_MODE=$LISTMONK_DB_SSL_MODE"
     
     # Use envsubst to substitute variables in config.toml
     if command -v envsubst >/dev/null 2>&1; then

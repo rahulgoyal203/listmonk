@@ -59,6 +59,30 @@ load_secret_files() {
 # Load env variables from files if LISTMONK_*_FILE variables are set.
 load_secret_files
 
+# Create missing config.toml.sample file EARLY before any config processing
+if [ ! -f /listmonk/static/config.toml.sample ]; then
+  echo "Creating missing config.toml.sample file early..."
+  mkdir -p /listmonk/static
+  # Create a basic sample file
+  cat > /listmonk/static/config.toml.sample << 'EOF'
+[app]
+address = "localhost:9000"
+
+[db]
+host = "localhost"
+port = 5432
+user = "listmonk"
+password = "listmonk"
+database = "listmonk"
+ssl_mode = "disable"
+max_open = 25
+max_idle = 25
+max_lifetime = "300s"
+params = ""
+EOF
+  echo "config.toml.sample created successfully"
+fi
+
 # Substitute environment variables in config.toml
 substitute_env_vars() {
   if [ -f /listmonk/config.toml ]; then
@@ -117,13 +141,6 @@ substitute_env_vars() {
 }
 
 substitute_env_vars
-
-# Create missing config.toml.sample file if it doesn't exist
-if [ ! -f /listmonk/static/config.toml.sample ]; then
-  echo "Creating missing config.toml.sample file..."
-  mkdir -p /listmonk/static
-  cp /listmonk/config.toml /listmonk/static/config.toml.sample
-fi
 
 # Try to set the ownership of the app directory to the app user.
 if ! chown -R ${PUID}:${PGID} /listmonk 2>/dev/null; then

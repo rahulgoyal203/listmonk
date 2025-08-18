@@ -73,7 +73,9 @@ substitute_env_vars() {
     
     # Use envsubst to substitute variables in config.toml
     if command -v envsubst >/dev/null 2>&1; then
-      envsubst < /listmonk/config.toml > /tmp/config.toml && mv /tmp/config.toml /listmonk/config.toml
+      envsubst '$LISTMONK_APP_ADDRESS $LISTMONK_DB_HOST $LISTMONK_DB_PORT $LISTMONK_DB_USER $LISTMONK_DB_PASSWORD $LISTMONK_DB_DATABASE $LISTMONK_DB_SSL_MODE' < /listmonk/config.toml > /tmp/config.toml && mv /tmp/config.toml /listmonk/config.toml
+      echo "Config substitution completed. Final config:"
+      cat /listmonk/config.toml
     fi
   fi
 }

@@ -20,9 +20,8 @@ COPY frontend/package.json frontend/yarn.lock frontend/
 RUN mkdir -p static/public/static
 RUN cd frontend && yarn install --frozen-lockfile
 
-# Copy frontend source and .gitignore files
+# Copy frontend source
 COPY frontend/ frontend/
-COPY .gitignore .gitignore
 
 # Build email builder first, then frontend (skip prebuild linting)
 RUN cd frontend/email-builder && yarn build && \

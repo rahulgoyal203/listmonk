@@ -7,12 +7,17 @@ RUN corepack enable
 # Set working directory
 WORKDIR /app
 
+# Copy static directory structure first
+COPY static/ static/
+
 # Copy package files for email builder
 COPY frontend/email-builder/package.json frontend/email-builder/yarn.lock frontend/email-builder/
 RUN cd frontend/email-builder && yarn install --frozen-lockfile
 
 # Copy package files for frontend
 COPY frontend/package.json frontend/yarn.lock frontend/
+# Create the required static directory structure for postinstall script
+RUN mkdir -p static/public/static
 RUN cd frontend && yarn install --frozen-lockfile
 
 # Copy frontend source
@@ -62,7 +67,7 @@ COPY --from=backend-builder /app/listmonk .
 
 # Copy configuration and static files
 COPY config.toml.sample config.toml
-COPY --from=backend-builder /app/static ./static
+COPY --from=frontend-builder /app/static ./static
 COPY --from=backend-builder /app/i18n ./i18n
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 

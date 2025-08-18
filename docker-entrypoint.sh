@@ -74,7 +74,10 @@ substitute_env_vars() {
     env | grep LISTMONK_ || echo "No LISTMONK_ variables found"
     
     # Convert LISTMONK_ environment variables to the config format
-    export LISTMONK_APP_ADDRESS="${LISTMONK_app__address:-0.0.0.0:${PORT:-9000}}"
+    # Handle PORT substitution manually since Railway doesn't expand ${PORT}
+    RESOLVED_ADDRESS="${LISTMONK_app__address:-0.0.0.0:${PORT:-9000}}"
+    RESOLVED_ADDRESS="${RESOLVED_ADDRESS//\${PORT}/${PORT}}"
+    export LISTMONK_APP_ADDRESS="${RESOLVED_ADDRESS}"
     export LISTMONK_DB_HOST="${LISTMONK_db__host:-${PGHOST:-localhost}}"
     export LISTMONK_DB_PORT="${LISTMONK_db__port:-${PGPORT:-5432}}"
     export LISTMONK_DB_USER="${LISTMONK_db__user:-${PGUSER:-listmonk}}"
@@ -103,6 +106,8 @@ substitute_env_vars() {
     sed -i "s/\${LISTMONK_DB_PASSWORD:-listmonk}/${LISTMONK_DB_PASSWORD}/g" /listmonk/config.toml
     sed -i "s/\${LISTMONK_DB_DATABASE:-listmonk}/${LISTMONK_DB_DATABASE}/g" /listmonk/config.toml
     sed -i "s/\${LISTMONK_DB_SSL_MODE:-disable}/${LISTMONK_DB_SSL_MODE}/g" /listmonk/config.toml
+    # Handle any remaining ${PORT} references
+    sed -i "s/\${PORT}/${PORT}/g" /listmonk/config.toml
     
     echo "Manual substitution completed. Final config:"
     cat /listmonk/config.toml

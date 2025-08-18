@@ -93,8 +93,22 @@ substitute_env_vars() {
     
     # Use envsubst to substitute variables in config.toml
     if command -v envsubst >/dev/null 2>&1; then
-      envsubst '$LISTMONK_APP_ADDRESS $LISTMONK_DB_HOST $LISTMONK_DB_PORT $LISTMONK_DB_USER $LISTMONK_DB_PASSWORD $LISTMONK_DB_DATABASE $LISTMONK_DB_SSL_MODE' < /listmonk/config.toml > /tmp/config.toml && mv /tmp/config.toml /listmonk/config.toml
+      echo "Original config before substitution:"
+      cat /listmonk/config.toml
+      echo "Running envsubst..."
+      envsubst < /listmonk/config.toml > /tmp/config.toml && mv /tmp/config.toml /listmonk/config.toml
       echo "Config substitution completed. Final config:"
+      cat /listmonk/config.toml
+    else
+      echo "envsubst not found, using manual substitution"
+      sed -i "s/\${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}/$LISTMONK_APP_ADDRESS/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_HOST:-localhost}/$LISTMONK_DB_HOST/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_PORT:-5432}/$LISTMONK_DB_PORT/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_USER:-listmonk}/$LISTMONK_DB_USER/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_PASSWORD:-listmonk}/$LISTMONK_DB_PASSWORD/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_DATABASE:-listmonk}/$LISTMONK_DB_DATABASE/g" /listmonk/config.toml
+      sed -i "s/\${LISTMONK_DB_SSL_MODE:-disable}/$LISTMONK_DB_SSL_MODE/g" /listmonk/config.toml
+      echo "Manual substitution completed. Final config:"
       cat /listmonk/config.toml
     fi
   fi

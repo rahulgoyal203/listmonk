@@ -67,8 +67,7 @@ WORKDIR /listmonk
 # Copy built binary from backend builder
 COPY --from=backend-builder /app/listmonk .
 
-# Copy configuration and static files
-COPY config.toml.sample config.toml
+# Copy static files (no config.toml - using environment variables)
 COPY --from=frontend-builder /app/static ./static
 COPY --from=backend-builder /app/i18n ./i18n
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist

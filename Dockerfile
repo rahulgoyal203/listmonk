@@ -73,22 +73,7 @@ COPY --from=backend-builder /app/i18n ./i18n
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 # Create a config.toml template that uses environment variables
-RUN cat > config.toml << 'EOF'
-[app]
-address = "${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}"
-
-[db]
-host = "${LISTMONK_DB_HOST:-localhost}"
-port = ${LISTMONK_DB_PORT:-5432}
-user = "${LISTMONK_DB_USER:-listmonk}"
-password = "${LISTMONK_DB_PASSWORD:-listmonk}"
-database = "${LISTMONK_DB_DATABASE:-listmonk}"
-ssl_mode = "${LISTMONK_DB_SSL_MODE:-disable}"
-max_open = 25
-max_idle = 25
-max_lifetime = "300s"
-params = ""
-EOF
+RUN printf '[app]\naddress = "${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}"\n\n[db]\nhost = "${LISTMONK_DB_HOST:-localhost}"\nport = ${LISTMONK_DB_PORT:-5432}\nuser = "${LISTMONK_DB_USER:-listmonk}"\npassword = "${LISTMONK_DB_PASSWORD:-listmonk}"\ndatabase = "${LISTMONK_DB_DATABASE:-listmonk}"\nssl_mode = "${LISTMONK_DB_SSL_MODE:-disable}"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > config.toml
 
 # Copy the entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/

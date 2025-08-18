@@ -118,6 +118,13 @@ substitute_env_vars() {
 
 substitute_env_vars
 
+# Create missing config.toml.sample file if it doesn't exist
+if [ ! -f /listmonk/static/config.toml.sample ]; then
+  echo "Creating missing config.toml.sample file..."
+  mkdir -p /listmonk/static
+  cp /listmonk/config.toml /listmonk/static/config.toml.sample
+fi
+
 # Try to set the ownership of the app directory to the app user.
 if ! chown -R ${PUID}:${PGID} /listmonk 2>/dev/null; then
   echo "Warning: Failed to change ownership of /listmonk. Readonly volume?"

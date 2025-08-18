@@ -59,6 +59,27 @@ load_secret_files() {
 # Load env variables from files if LISTMONK_*_FILE variables are set.
 load_secret_files
 
+# Substitute environment variables in config.toml
+substitute_env_vars() {
+  if [ -f /listmonk/config.toml ]; then
+    # Convert LISTMONK_ environment variables to the config format
+    export LISTMONK_APP_ADDRESS="${LISTMONK_app__address:-0.0.0.0:$PORT}"
+    export LISTMONK_DB_HOST="${LISTMONK_db__host:-localhost}"
+    export LISTMONK_DB_PORT="${LISTMONK_db__port:-5432}"
+    export LISTMONK_DB_USER="${LISTMONK_db__user:-listmonk}"
+    export LISTMONK_DB_PASSWORD="${LISTMONK_db__password:-listmonk}"
+    export LISTMONK_DB_DATABASE="${LISTMONK_db__database:-listmonk}"
+    export LISTMONK_DB_SSL_MODE="${LISTMONK_db__ssl_mode:-disable}"
+    
+    # Use envsubst to substitute variables in config.toml
+    if command -v envsubst >/dev/null 2>&1; then
+      envsubst < /listmonk/config.toml > /tmp/config.toml && mv /tmp/config.toml /listmonk/config.toml
+    fi
+  fi
+}
+
+substitute_env_vars
+
 # Try to set the ownership of the app directory to the app user.
 if ! chown -R ${PUID}:${PGID} /listmonk 2>/dev/null; then
   echo "Warning: Failed to change ownership of /listmonk. Readonly volume?"

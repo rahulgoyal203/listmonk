@@ -59,7 +59,7 @@ RUN CGO_ENABLED=0 go build -o listmonk -ldflags="-s -w -X 'main.buildString=late
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata shadow su-exec
+RUN apk --no-cache add ca-certificates tzdata shadow su-exec gettext
 
 # Set the working directory
 WORKDIR /listmonk
@@ -67,10 +67,28 @@ WORKDIR /listmonk
 # Copy built binary from backend builder
 COPY --from=backend-builder /app/listmonk .
 
-# Copy static files (no config.toml - using environment variables)
+# Copy static files and create config template
 COPY --from=frontend-builder /app/static ./static
 COPY --from=backend-builder /app/i18n ./i18n
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+# Create a config.toml template that uses environment variables
+RUN cat > config.toml << 'EOF'
+[app]
+address = "${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}"
+
+[db]
+host = "${LISTMONK_DB_HOST:-localhost}"
+port = ${LISTMONK_DB_PORT:-5432}
+user = "${LISTMONK_DB_USER:-listmonk}"
+password = "${LISTMONK_DB_PASSWORD:-listmonk}"
+database = "${LISTMONK_DB_DATABASE:-listmonk}"
+ssl_mode = "${LISTMONK_DB_SSL_MODE:-disable}"
+max_open = 25
+max_idle = 25
+max_lifetime = "300s"
+params = ""
+EOF
 
 # Copy the entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/

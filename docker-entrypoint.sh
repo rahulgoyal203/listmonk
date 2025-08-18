@@ -76,7 +76,9 @@ substitute_env_vars() {
     # Convert LISTMONK_ environment variables to the config format
     # Handle PORT substitution manually since Railway doesn't expand ${PORT}
     RESOLVED_ADDRESS="${LISTMONK_app__address:-0.0.0.0:${PORT:-9000}}"
-    RESOLVED_ADDRESS="${RESOLVED_ADDRESS//\${PORT}/${PORT}}"
+    if [[ "$RESOLVED_ADDRESS" == *"\${PORT}"* ]]; then
+        RESOLVED_ADDRESS="${RESOLVED_ADDRESS/\$\{PORT\}/${PORT}}"
+    fi
     export LISTMONK_APP_ADDRESS="${RESOLVED_ADDRESS}"
     export LISTMONK_DB_HOST="${LISTMONK_db__host:-${PGHOST:-localhost}}"
     export LISTMONK_DB_PORT="${LISTMONK_db__port:-${PGPORT:-5432}}"
@@ -99,15 +101,15 @@ substitute_env_vars() {
     cat /listmonk/config.toml
     
     echo "Running manual substitution..."
-    sed -i "s/\${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}/${LISTMONK_APP_ADDRESS}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_HOST:-localhost}/${LISTMONK_DB_HOST}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_PORT:-5432}/${LISTMONK_DB_PORT}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_USER:-listmonk}/${LISTMONK_DB_USER}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_PASSWORD:-listmonk}/${LISTMONK_DB_PASSWORD}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_DATABASE:-listmonk}/${LISTMONK_DB_DATABASE}/g" /listmonk/config.toml
-    sed -i "s/\${LISTMONK_DB_SSL_MODE:-disable}/${LISTMONK_DB_SSL_MODE}/g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}|${LISTMONK_APP_ADDRESS}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_HOST:-localhost}|${LISTMONK_DB_HOST}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_PORT:-5432}|${LISTMONK_DB_PORT}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_USER:-listmonk}|${LISTMONK_DB_USER}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_PASSWORD:-listmonk}|${LISTMONK_DB_PASSWORD}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_DATABASE:-listmonk}|${LISTMONK_DB_DATABASE}|g" /listmonk/config.toml
+    sed -i "s|\${LISTMONK_DB_SSL_MODE:-disable}|${LISTMONK_DB_SSL_MODE}|g" /listmonk/config.toml
     # Handle any remaining ${PORT} references
-    sed -i "s/\${PORT}/${PORT}/g" /listmonk/config.toml
+    sed -i "s|\${PORT}|${PORT}|g" /listmonk/config.toml
     
     echo "Manual substitution completed. Final config:"
     cat /listmonk/config.toml

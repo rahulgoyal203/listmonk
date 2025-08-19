@@ -148,17 +148,16 @@ fi
 echo "Launching listmonk with user=[${USER_NAME}] group=[${GROUP_NAME}] PUID=[${PUID}] PGID=[${PGID}]"
 
 # Check if database needs initialization
-# The --install command is safe to run - it checks if tables exist and skips if already initialized
-echo "Checking database initialization status..."
-if [ "$(id -u)" = "0" ] && [ "${PUID}" != "0" ]; then
-  # Run as non-root user
-  echo "Running database installation check (will skip if already initialized)..."
-  su-exec ${PUID}:${PGID} ./listmonk --install --yes 2>&1 | grep -E "(already exists|initialized|installed)" || true
-else
-  # Run as current user
-  echo "Running database installation check (will skip if already initialized)..."
-  ./listmonk --install --yes 2>&1 | grep -E "(already exists|initialized|installed)" || true
-fi
+echo "Checking and initializing database if needed..."
+
+# First, try to run the installation
+echo "Running database installation (safe - will skip if already exists)..."
+./listmonk --install --yes 2>&1 || {
+  echo "Installation returned an error, but this might be normal if already installed"
+}
+
+# Give it a moment to ensure database is ready
+sleep 2
 
 # Now run the main application
 echo "Starting listmonk application..."

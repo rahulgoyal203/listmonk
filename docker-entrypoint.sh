@@ -147,6 +147,24 @@ fi
 
 echo "Launching listmonk with user=[${USER_NAME}] group=[${GROUP_NAME}] PUID=[${PUID}] PGID=[${PGID}]"
 
+# Check if database needs initialization
+echo "Checking database initialization status..."
+if [ "$(id -u)" = "0" ] && [ "${PUID}" != "0" ]; then
+  # Run as non-root user
+  if ! su-exec ${PUID}:${PGID} ./listmonk --version >/dev/null 2>&1; then
+    echo "Database check failed, attempting installation..."
+    su-exec ${PUID}:${PGID} ./listmonk --install --yes || echo "Installation failed or already complete"
+  fi
+else
+  # Run as current user
+  if ! ./listmonk --version >/dev/null 2>&1; then
+    echo "Database check failed, attempting installation..."
+    ./listmonk --install --yes || echo "Installation failed or already complete"
+  fi
+fi
+
+# Now run the main application
+echo "Starting listmonk application..."
 # If running as root and PUID is not 0, then execute command as PUID
 # this allows us to run the container as a non-root user
 if [ "$(id -u)" = "0" ] && [ "${PUID}" != "0" ]; then

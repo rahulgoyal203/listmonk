@@ -144,11 +144,23 @@ echo "Launching listmonk with user=[${USER_NAME}] group=[${GROUP_NAME}] PUID=[${
 # Check if database needs initialization
 echo "Checking and initializing database if needed..."
 
-# First, try to run the installation
-echo "Running database installation (safe - will skip if already exists)..."
-./listmonk --install --yes 2>&1 || {
-  echo "Installation returned an error, but this might be normal if already installed"
-}
+# Only run install if database is truly empty
+# Check if the settings table exists (indicates an initialized database)
+if ./listmonk --version >/dev/null 2>&1; then
+  echo "Checking if database is already initialized..."
+  # Try to run listmonk without install - if it fails, then install
+  if ! ./listmonk --config /listmonk/config.toml --version 2>&1 | grep -q "settings"; then
+    echo "Database appears uninitialized. Running installation..."
+    ./listmonk --install --idempotent --yes 2>&1 || {
+      echo "Installation returned an error, checking if already installed..."
+    }
+  else
+    echo "Database already initialized, skipping installation"
+  fi
+else
+  echo "First time setup - running installation..."
+  ./listmonk --install --idempotent --yes 2>&1
+fi
 
 # Give it a moment to ensure database is ready
 sleep 2

@@ -118,23 +118,36 @@ substitute_env_vars() {
 
 substitute_env_vars
 
-# Create config.toml.sample if it doesn't exist in static directory
-if [ ! -f /listmonk/static/config.toml.sample ]; then
-  echo "Creating config.toml.sample in static directory..."
-  printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > /listmonk/static/config.toml.sample
-  echo "config.toml.sample created successfully"
+# Create config.toml.sample in the root directory (where listmonk expects it)
+if [ ! -f /listmonk/config.toml.sample ]; then
+  echo "Creating config.toml.sample in root directory..."
+  printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > /listmonk/config.toml.sample
+  echo "config.toml.sample created successfully in root"
 else
-  echo "config.toml.sample already exists"
+  echo "config.toml.sample already exists in root"
 fi
 
-# Verify the file exists
+# Also create it in static directory for backward compatibility
+if [ ! -f /listmonk/static/config.toml.sample ]; then
+  echo "Creating config.toml.sample in static directory..."
+  cp /listmonk/config.toml.sample /listmonk/static/config.toml.sample
+  echo "config.toml.sample copied to static directory"
+fi
+
+# Verify both files exist
+echo "Verifying config.toml.sample locations:"
+if [ -f /listmonk/config.toml.sample ]; then
+  echo "✓ Root: /listmonk/config.toml.sample"
+  ls -la /listmonk/config.toml.sample
+else
+  echo "✗ Root: config.toml.sample missing"
+fi
+
 if [ -f /listmonk/static/config.toml.sample ]; then
-  echo "Verified: config.toml.sample exists at /listmonk/static/config.toml.sample"
+  echo "✓ Static: /listmonk/static/config.toml.sample"
   ls -la /listmonk/static/config.toml.sample
 else
-  echo "ERROR: Failed to create config.toml.sample"
-  echo "Static directory contents:"
-  ls -la /listmonk/static/
+  echo "✗ Static: config.toml.sample missing"
 fi
 
 # Try to set the ownership of the app directory to the app user.

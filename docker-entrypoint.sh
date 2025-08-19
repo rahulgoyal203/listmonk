@@ -118,6 +118,25 @@ substitute_env_vars() {
 
 substitute_env_vars
 
+# Create config.toml.sample if it doesn't exist in static directory
+if [ ! -f /listmonk/static/config.toml.sample ]; then
+  echo "Creating config.toml.sample in static directory..."
+  printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > /listmonk/static/config.toml.sample
+  echo "config.toml.sample created successfully"
+else
+  echo "config.toml.sample already exists"
+fi
+
+# Verify the file exists
+if [ -f /listmonk/static/config.toml.sample ]; then
+  echo "Verified: config.toml.sample exists at /listmonk/static/config.toml.sample"
+  ls -la /listmonk/static/config.toml.sample
+else
+  echo "ERROR: Failed to create config.toml.sample"
+  echo "Static directory contents:"
+  ls -la /listmonk/static/
+fi
+
 # Try to set the ownership of the app directory to the app user.
 if ! chown -R ${PUID}:${PGID} /listmonk 2>/dev/null; then
   echo "Warning: Failed to change ownership of /listmonk. Readonly volume?"

@@ -74,17 +74,13 @@ substitute_env_vars() {
     env | grep LISTMONK_ || echo "No LISTMONK_ variables found"
     
     # Convert LISTMONK_ environment variables to the config format
-    # Handle PORT substitution manually since Railway doesn't expand ${PORT}
-    RESOLVED_ADDRESS="${LISTMONK_app__address:-0.0.0.0:${PORT:-9000}}"
-    if [[ "$RESOLVED_ADDRESS" == *"\${PORT}"* ]]; then
-        RESOLVED_ADDRESS="${RESOLVED_ADDRESS/\$\{PORT\}/${PORT}}"
-    fi
-    export LISTMONK_APP_ADDRESS="${RESOLVED_ADDRESS}"
-    export LISTMONK_DB_HOST="${LISTMONK_db__host:-${PGHOST:-localhost}}"
-    export LISTMONK_DB_PORT="${LISTMONK_db__port:-${PGPORT:-5432}}"
-    export LISTMONK_DB_USER="${LISTMONK_db__user:-${PGUSER:-listmonk}}"
-    export LISTMONK_DB_PASSWORD="${LISTMONK_db__password:-${PGPASSWORD:-listmonk}}"
-    export LISTMONK_DB_DATABASE="${LISTMONK_db__database:-${PGDATABASE:-listmonk}}"
+    # Simplified - expecting LISTMONK_app__address to already have the port (e.g., 0.0.0.0:8080)
+    export LISTMONK_APP_ADDRESS="${LISTMONK_app__address:-0.0.0.0:9000}"
+    export LISTMONK_DB_HOST="${LISTMONK_db__host:-localhost}"
+    export LISTMONK_DB_PORT="${LISTMONK_db__port:-5432}"
+    export LISTMONK_DB_USER="${LISTMONK_db__user:-listmonk}"
+    export LISTMONK_DB_PASSWORD="${LISTMONK_db__password:-listmonk}"
+    export LISTMONK_DB_DATABASE="${LISTMONK_db__database:-listmonk}"
     export LISTMONK_DB_SSL_MODE="${LISTMONK_db__ssl_mode:-disable}"
     
     echo "Debug: Mapped variables for substitution:"
@@ -108,8 +104,6 @@ substitute_env_vars() {
     sed -i "s|\${LISTMONK_DB_PASSWORD:-listmonk}|${LISTMONK_DB_PASSWORD}|g" /listmonk/config.toml
     sed -i "s|\${LISTMONK_DB_DATABASE:-listmonk}|${LISTMONK_DB_DATABASE}|g" /listmonk/config.toml
     sed -i "s|\${LISTMONK_DB_SSL_MODE:-disable}|${LISTMONK_DB_SSL_MODE}|g" /listmonk/config.toml
-    # Handle any remaining ${PORT} references
-    sed -i "s|\${PORT}|${PORT}|g" /listmonk/config.toml
     
     echo "Manual substitution completed. Final config:"
     cat /listmonk/config.toml

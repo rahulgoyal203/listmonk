@@ -118,37 +118,27 @@ substitute_env_vars() {
 
 substitute_env_vars
 
-# Create config.toml.sample in the root directory (where listmonk expects it)
-if [ ! -f /listmonk/config.toml.sample ]; then
-  echo "Creating config.toml.sample in root directory..."
-  printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > /listmonk/config.toml.sample
-  echo "config.toml.sample created successfully in root"
-else
-  echo "config.toml.sample already exists in root"
-fi
-
-# Also create it in static directory for backward compatibility
-if [ ! -f /listmonk/static/config.toml.sample ]; then
-  echo "Creating config.toml.sample in static directory..."
-  cp /listmonk/config.toml.sample /listmonk/static/config.toml.sample
-  echo "config.toml.sample copied to static directory"
-fi
-
-# Verify both files exist
-echo "Verifying config.toml.sample locations:"
-if [ -f /listmonk/config.toml.sample ]; then
-  echo "✓ Root: /listmonk/config.toml.sample"
-  ls -la /listmonk/config.toml.sample
-else
-  echo "✗ Root: config.toml.sample missing"
-fi
-
-if [ -f /listmonk/static/config.toml.sample ]; then
-  echo "✓ Static: /listmonk/static/config.toml.sample"
-  ls -la /listmonk/static/config.toml.sample
-else
-  echo "✗ Static: config.toml.sample missing"
-fi
+# Verify critical files exist
+echo "Verifying required files:"
+for file in config.toml.sample queries.sql schema.sql permissions.json; do
+  if [ -f "/listmonk/$file" ]; then
+    echo "✓ $file exists"
+  else
+    echo "✗ $file missing - creating fallback..."
+    # Create empty fallback files if they don't exist
+    case "$file" in
+      config.toml.sample)
+        printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\n' > "/listmonk/$file"
+        ;;
+      permissions.json)
+        echo '[]' > "/listmonk/$file"
+        ;;
+      *)
+        touch "/listmonk/$file"
+        ;;
+    esac
+  fi
+done
 
 # Try to set the ownership of the app directory to the app user.
 if ! chown -R ${PUID}:${PGID} /listmonk 2>/dev/null; then

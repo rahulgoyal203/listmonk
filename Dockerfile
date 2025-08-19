@@ -67,6 +67,12 @@ WORKDIR /listmonk
 # Copy built binary from backend builder
 COPY --from=backend-builder /app/listmonk .
 
+# Copy required SQL and config files from backend builder
+COPY --from=backend-builder /app/queries.sql .
+COPY --from=backend-builder /app/schema.sql .
+COPY --from=backend-builder /app/permissions.json .
+COPY --from=backend-builder /app/config.toml.sample .
+
 # Copy static files and create config template
 COPY --from=frontend-builder /app/static ./static
 COPY --from=backend-builder /app/i18n ./i18n

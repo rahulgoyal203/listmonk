@@ -71,13 +71,10 @@ COPY --from=backend-builder /app/listmonk .
 COPY --from=frontend-builder /app/static ./static
 COPY --from=backend-builder /app/i18n ./i18n
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
-COPY config.toml.sample ./static/config.toml.sample
+COPY --from=backend-builder /app/config.toml.sample ./static/config.toml.sample
 
 # Create a config.toml template that uses environment variables
 RUN printf '[app]\naddress = "${LISTMONK_APP_ADDRESS:-0.0.0.0:9000}"\n\n[db]\nhost = "${LISTMONK_DB_HOST:-localhost}"\nport = ${LISTMONK_DB_PORT:-5432}\nuser = "${LISTMONK_DB_USER:-listmonk}"\npassword = "${LISTMONK_DB_PASSWORD:-listmonk}"\ndatabase = "${LISTMONK_DB_DATABASE:-listmonk}"\nssl_mode = "${LISTMONK_DB_SSL_MODE:-disable}"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > config.toml
-
-# Create the required config.toml.sample file in static directory
-RUN printf '[app]\naddress = "localhost:9000"\n\n[db]\nhost = "localhost"\nport = 5432\nuser = "listmonk"\npassword = "listmonk"\ndatabase = "listmonk"\nssl_mode = "disable"\nmax_open = 25\nmax_idle = 25\nmax_lifetime = "300s"\nparams = ""\n' > static/config.toml.sample
 
 # Copy the entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
